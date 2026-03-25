@@ -1,0 +1,5 @@
+title = "Configuration for ReRe"
+name = "ReRe"
+
+port = 9090
+ip = 127.0.0.1

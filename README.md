@@ -15,3 +15,13 @@ The system enables users to:
 
 ## Phase 1: Research & Planning
 This is **Phase 1: Research & Planning** of the Activity-to-Resume Automation System project.
+
+## Project Architecture
+Front-end `/front`
+
+Back-end `/back`
+
+Design specifications `/design`
+
+## Project Name
+Let's name the project `ReRe`
