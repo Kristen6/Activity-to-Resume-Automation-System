@@ -24,4 +24,25 @@ Back-end `/back`
 Design specifications `/design`
 
 ## Project Name
-Let's name the project `ReRe`
+Let's name the project `ReRe` (subject to change)
+
+## Development
+### Frontend
+
+To start the development process, the easiest way is to install [pnpm](https://pnpm.io/installation), and then run
+```sh
+cd front
+pnpm install
+```
+You only need to run `pnpm install` one time. After which dependencies are installed and no need to run it again.
+
+To start developing, use
+```sh
+cd front # if you are not in /front yet
+sh start.sh
+```
+
+## Deployment
+
+### frontend
+see `/front/README.md`
