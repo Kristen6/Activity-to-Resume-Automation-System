@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+// TODO: dynamic achievement
 // let achievements = JSON.parse(localStorage.getItem('achievements')||'[]');
 let achievements: Array<any> = [];
 let selectedCat = 'work';
@@ -53,7 +54,6 @@ function saveAchievement(data: any){
   achievements.unshift(a);
   save();
   if(!data){
-    // TODO: Property 'value' does not exist on type 'HTMLElement'.
     ['f-title','f-org','f-date','f-desc'].forEach(id=>document.getElementById(id)!.innerText='');
     document.getElementById('f-title')!.style.borderColor='';
     const btn=document.getElementById('type-save-btn');
@@ -311,7 +311,6 @@ async function generateResume(){
 
 export default function Home() {
   const [selectedCat, setSelectedCat] = useState('work');
-  
 
   return (
     <>
@@ -346,12 +345,12 @@ export default function Home() {
           <div className="form-row">
             <label>Category</label>
             <div className="tag-row" id="cat-tags">
-              <span className="tag work selected" data-cat="work">Work</span>
-              <span className="tag education" data-cat="education">Education</span>
-              <span className="tag project" data-cat="project">Project</span>
-              <span className="tag leadership" data-cat="leadership">Leadership</span>
-              <span className="tag award" data-cat="award">Award</span>
-              <span className="tag volunteer" data-cat="volunteer">Volunteer</span>
+              <span className={`tag work ${selectedCat === "work" ? "selected" : ""}`} data-cat="work" onClick={()=>setSelectedCat("work")}>Work</span>
+              <span className={`tag education ${selectedCat === "education" ? "selected" : ""}`} data-cat="education" onClick={()=>setSelectedCat("education")}>Education</span>
+              <span className={`tag project ${selectedCat === "project" ? "selected" : ""}`} data-cat="project" onClick={()=>setSelectedCat("project")}>Project</span>
+              <span className={`tag leadership ${selectedCat === "leadership" ? "selected" : ""}`} data-cat="leadership" onClick={()=>setSelectedCat("leadership")}>Leadership</span>
+              <span className={`tag award ${selectedCat === "award" ? "selected" : ""}`} data-cat="award" onClick={()=>setSelectedCat("award")}>Award</span>
+              <span className={`tag volunteer ${selectedCat === "volunteer" ? "selected" : ""}`} data-cat="volunteer" onClick={()=>setSelectedCat("volunteer")}>Volunteer</span>
             </div>
           </div>
           <div className="form-row">
