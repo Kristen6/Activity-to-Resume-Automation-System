@@ -1,4 +1,9 @@
-let achievements = JSON.parse(localStorage.getItem('achievements')||'[]');
+'use client';
+
+import { useState } from 'react';
+
+// let achievements = JSON.parse(localStorage.getItem('achievements')||'[]');
+let achievements: Array<any> = [];
 let selectedCat = 'work';
 let currentFilter = 'all';
 let isRecording = false;
@@ -9,16 +14,6 @@ let waveInterval: any = null;
 let fullTranscript = '';
 
 function save(){localStorage.setItem('achievements',JSON.stringify(achievements))}
-
-// TODO: what the fuck is this
-// ── Category tags ──
-// document.querySelectorAll('#cat-tags .tag').forEach(t=>{
-//   t.onClick=()=>{
-//     document.querySelectorAll('#cat-tags .tag').forEach(x=>x.classList.remove('selected'));
-//     t.classList.add('selected');
-//     selectedCat=t.dataset.cat;
-//   };
-// });
 
 // ── Pages ──
 function showPage(p: string){
@@ -75,9 +70,8 @@ function toggleRecording(){
 }
 
 function startRecording(){
-  // TODO: speech stuff
-  // const SR = window.SpeechRecognition || window.WebkitSpeechRecognition;
-  const SR = window.SpeechRecognition || window.WebkitSpeechRecognition;
+  // TODO: implement speech stuff
+  const SR = (window as any).SpeechRecognition || (window as any).WebkitSpeechRecognition;
   if(!SR){
     setVoiceStatus('Speech recognition not supported in this browser.','error');
     return;
@@ -101,7 +95,7 @@ function startRecording(){
     (document.getElementById('transcript-text')! as HTMLInputElement).value='';
   };
 
-  // TODO: e should be an event
+  // TODO: e should be SpeechRecognitionEvent
   recognition.onresult = (e: any)=>{
     let interim='';
     let final='';
@@ -113,7 +107,7 @@ function startRecording(){
     (document.getElementById('transcript-text')! as HTMLInputElement).value=(fullTranscript+interim).trim();
   };
 
-  // TODO: e
+  // TODO: e type
   recognition.onerror = (e: any)=>{
     stopRecording();
     setVoiceStatus('Mic error: '+e.error,'error');
@@ -267,7 +261,7 @@ function renderList(){
 
 // TODO: reduce anys
 function deleteAchievement(id: any){achievements=achievements.filter((a: any)=>a.id!==id);save();renderList();}
-function setFilter(f: any,el: any){currentFilter=f;document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderList();}
+function setFilter(f: any,el: Element){currentFilter=f;document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderList();}
 function esc(s: any){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
 // ── Export ──
@@ -316,15 +310,11 @@ async function generateResume(){
 }
 
 export default function Home() {
+  const [selectedCat, setSelectedCat] = useState('work');
+  
+
   return (
     <>
-    <head>
-    <meta charSet="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="style/css"/>
-    <title>Resume Builder</title>
-    </head>
-    <body>
     <nav>
       <span className="logo">re<span>sume</span>.ai</span>
       <div className="nav-tabs">
@@ -341,11 +331,11 @@ export default function Home() {
 
       <div className="mode-toggle">
         <button className="mode-btn active" id="mode-type" onClick={()=>setMode('type')}>
-          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
           Type
         </button>
         <button className="mode-btn" id="mode-voice" onClick={()=>setMode('voice')}>
-          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/></svg>
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/></svg>
           Voice
         </button>
       </div>
@@ -389,8 +379,8 @@ export default function Home() {
             <div className="mic-ring-pulse p1"></div>
             <div className="mic-ring-pulse p2"></div>
             <button className="mic-btn" id="mic-btn" onClick={toggleRecording}>
-              <svg id="mic-icon" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2">
-                <path stroke-linecap="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/>
+              <svg id="mic-icon" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth="2">
+                <path strokeLinecap="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/>
               </svg>
               <svg id="stop-icon" width="22" height="22" viewBox="0 0 24 24" fill="#fff" style={{display:'none'}}>
                 <rect x="6" y="6" width="12" height="12" rx="2"/>
@@ -437,13 +427,13 @@ export default function Home() {
       </div>
       <p className="subtitle">Browse and manage your recorded achievements.</p>
       <div className="filter-row">
-        <span className="filter-chip active" data-filter="all" onClick={()=>setFilter('all',this)}>All</span>
-        <span className="filter-chip" data-filter="work" onClick={()=>setFilter('work',this)}>Work</span>
-        <span className="filter-chip" data-filter="education" onClick={()=>setFilter('education',this)}>Education</span>
-        <span className="filter-chip" data-filter="project" onClick={()=>setFilter('project',this)}>Project</span>
-        <span className="filter-chip" data-filter="leadership" onClick={()=>setFilter('leadership',this)}>Leadership</span>
-        <span className="filter-chip" data-filter="award" onClick={()=>setFilter('award',this)}>Award</span>
-        <span className="filter-chip" data-filter="volunteer" onClick={()=>setFilter('volunteer',this)}>Volunteer</span>
+        <span className="filter-chip active" data-filter="all" onClick={(e)=>setFilter('all',e.currentTarget)}>All</span>
+        <span className="filter-chip" data-filter="work" onClick={(e)=>setFilter('work',e.currentTarget)}>Work</span>
+        <span className="filter-chip" data-filter="education" onClick={(e)=>setFilter('education',e.currentTarget)}>Education</span>
+        <span className="filter-chip" data-filter="project" onClick={(e)=>setFilter('project',e.currentTarget)}>Project</span>
+        <span className="filter-chip" data-filter="leadership" onClick={(e)=>setFilter('leadership',e.currentTarget)}>Leadership</span>
+        <span className="filter-chip" data-filter="award" onClick={(e)=>setFilter('award',e.currentTarget)}>Award</span>
+        <span className="filter-chip" data-filter="volunteer" onClick={(e)=>setFilter('volunteer',e.currentTarget)}>Volunteer</span>
       </div>
       <div id="achievements-list"></div>
     </main>
@@ -472,13 +462,12 @@ export default function Home() {
         <div id="export-summary"></div>
       </div>
       <button className="export-btn" id="gen-btn" onClick={generateResume}>
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         Generate resume with AI
       </button>
       <div id="export-status"></div>
       <div id="ai-output-container"></div>
     </main>
-    </body>
     </>
   );
 }
