@@ -6,9 +6,9 @@
 > Do this in the `/front` directory
 
 ```sh
-docker build . -t hci:rere
+docker build . -t rere:front
 ```
 
 ```sh
-docker run --rm -t -p 3000:3000 hci:rere
+docker run --rm -t -p 3000:3000 rere:front
 ```

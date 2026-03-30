@@ -1,7 +1,3 @@
-FROM node:20-slim
-
-WORKDIR /app
-
 # ================
 # |   frontend   |
 # ================
@@ -15,6 +11,10 @@ WORKDIR /app
 #     \   \/      \/   /
 #      \    (_/\_)    /
 #       --------------
+
+FROM node:20-slim
+
+WORKDIR /app
 
 # install pnpm
 ENV PNPM_HOME="/pnpm"
