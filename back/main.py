@@ -1,6 +1,11 @@
 from fastapi import FastAPI
 
+# haha, as
+from agent import agent
+from util import init
+ 
 app = FastAPI()
+conf = init.env()
 
 # authentication
 # {username, passwd} -> {token}
@@ -24,9 +29,10 @@ async def get():
 
 # generate
 # {token} -> {pdf file}
-@app.post("/gen")
+@app.get("/gen")
 async def gen():
-    pass
+    api_key = conf.get("JIEKOU_API_KEY")
+    agent.ping(api_key)
 
 @app.get("/")
 async def root():
