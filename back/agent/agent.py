@@ -1,17 +1,17 @@
-import os
-from openai import OpenAI
+import anthropic
 
-MODEL   = "gpt-5.1"
+MODEL = "claude-sonnet-4-6"
 
 def ask(client, prompt: str) -> str:
-    response = client.chat.completions.create(
+    response = client.messages.create(
         model=MODEL,
+        max_tokens=1024,
         messages=[{"role": "user", "content": prompt}]
     )
-    return response.choices[0].message.content
+    return response.content[0].text
 
 def ping(api_key):
-    client = OpenAI(api_key=api_key, base_url="https://api.jiekou.ai/openai")
+    client = anthropic.Anthropic(api_key=api_key)
 
     prompt = "Who are you?"
     print(f"Sending prompt : {prompt!r}")

@@ -1,28 +1,36 @@
 # Development
 
-Install fastapi
+Setup virtual environment and install dependencies:
 ```sh
 cd back
 python3 -m venv .venv
 source .venv/bin/activate
-pip install "fastapi[standard]"
+pip install -r requirements.txt
 ```
 
-Run
+Create a `.env` file (see `.env.example`):
+```sh
+cp .env.example .env
+# then edit .env and fill in your keys
 ```
+
+Run:
+```sh
 fastapi dev
 ```
 
 # Deployment
 
-Build docker image
+Build docker image:
 ```sh
 cd back
 docker build . -t rere:back
 ```
 
-Run docker image
+Run docker image:
 ```sh
-cd back
-docker run --rm -p 8000:8000 -t rere:back
+docker run --rm -p 8000:8000 \
+  -e ANTHROPIC_API_KEY=your_key_here \
+  -e SECRET_KEY=your_secret_key_here \
+  -t rere:back
 ```
