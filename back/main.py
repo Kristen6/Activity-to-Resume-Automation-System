@@ -119,7 +119,7 @@ async def generate_resume(req: GenRequest, username: str = Depends(get_current_u
     response = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=1500,
-        system="You are a professional resume writer. Generate clean, well-structured resumes in plain text format.",
+        system="You are a professional resume writer. Generate clean, well-structured resumes in plain text format. Do not include 'References available upon request', any references section, or any notes/reminders asking the user to add more information.",
         messages=[{"role": "user", "content": (
             f"Generate a professional resume.\n\n"
             f"CANDIDATE:\nName: {req.name or '(not provided)'}\nEmail: {req.email or '(not provided)'}\n"

@@ -245,7 +245,7 @@ function renderList() {
     return `<div class="achievement-card">
       <div class="ac-header">
         <span class="ac-tag" style="background:${c.bg};color:${c.color}">${a.cat}</span>
-        <div class="ac-actions"><button class="icon-btn del" onclick="deleteAchievement(${a.id})">Delete</button></div>
+        <div class="ac-actions"><button class="icon-btn del" onclick="requestDeleteAchievement(${a.id})">Delete</button></div>
       </div>
       <div class="ac-title">${esc(a.title)}</div>
       <div class="ac-meta">${[a.org, a.date].filter(Boolean).join(' · ')}</div>
@@ -258,6 +258,12 @@ async function deleteAchievement(id: any) {
   achievements = achievements.filter((a: any) => a.id !== id);
   await saveToBackend();
   renderList();
+}
+
+function requestDeleteAchievement(id: any) {
+  if (typeof (window as any).__showDeleteModal === 'function') {
+    (window as any).__showDeleteModal(id);
+  }
 }
 
 function setFilter(f: any, el: Element) {
@@ -301,8 +307,16 @@ async function generateResume() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Server error');
-    document.getElementById('export-status')!.innerHTML = '<div class="status-box success">Resume generated. Copy or print this page.</div>';
-    document.getElementById('ai-output-container')!.innerHTML = `<div class="ai-output">${esc(data.resume)}</div>`;
+    document.getElementById('export-status')!.innerHTML = '<div class="status-box success">Resume generated — edit below, then preview or download as PDF.</div>';
+    document.getElementById('ai-output-container')!.innerHTML = `
+      <div style="margin-top:14px">
+        <label style="font-size:12px;color:#888780;text-transform:uppercase;letter-spacing:.5px;font-weight:500;display:block;margin-bottom:8px">Edit your resume</label>
+        <textarea id="resume-edit-area" style="width:100%;min-height:400px;padding:16px;font-size:13px;line-height:1.7;border:1px solid #e8e6df;border-radius:8px;background:#fafaf9;color:#1a1a18;font-family:inherit;resize:vertical;outline:none;transition:border .15s" onfocus="this.style.borderColor='#7f77dd';this.style.background='#fff'" onblur="this.style.borderColor='#e8e6df';this.style.background='#fafaf9'">${esc(data.resume)}</textarea>
+        <button onclick="previewResumePDF()" style="margin-top:10px;width:100%;padding:11px;background:#534ab7;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          Preview &amp; Download PDF
+        </button>
+      </div>`;
   } catch (e) {
     document.getElementById('export-status')!.innerHTML = `<div class="status-box error">Error: ${esc((e! as Error).message)}</div>`;
   } finally {
@@ -310,11 +324,82 @@ async function generateResume() {
   }
 }
 
+function mdEsc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderInline(text: string): string {
+  return mdEsc(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>');
+}
+
+function markdownToHtml(md: string): string {
+  const lines = md.split('\n');
+  let html = '';
+  let inList = false;
+
+  for (const line of lines) {
+    const t = line.trim();
+    if (t.startsWith('### ')) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<h3>${renderInline(t.slice(4))}</h3>`;
+    } else if (t.startsWith('## ')) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<h2>${renderInline(t.slice(3))}</h2>`;
+    } else if (t.startsWith('# ')) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<h1>${renderInline(t.slice(2))}</h1>`;
+    } else if (t.startsWith('- ') || t.startsWith('* ')) {
+      if (!inList) { html += '<ul>'; inList = true; }
+      html += `<li>${renderInline(t.slice(2))}</li>`;
+    } else if (t === '---') {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += '<hr>';
+    } else if (t === '') {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += '<div class="spacer"></div>';
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<p>${renderInline(t)}</p>`;
+    }
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
+
+function previewResumePDF() {
+  const textarea = document.getElementById('resume-edit-area') as HTMLTextAreaElement;
+  const text = textarea ? textarea.value : '';
+  if (!text) return;
+  const body = markdownToHtml(text);
+  const html = `<!DOCTYPE html><html><head><title>Resume</title><style>
+    body{font-family:Arial,sans-serif;max-width:780px;margin:0 auto;padding:48px 40px;color:#1a1a18;font-size:13px}
+    h1{font-size:22px;font-weight:700;margin:0 0 4px}
+    h2{font-size:15px;font-weight:600;margin:20px 0 6px;padding-bottom:4px;border-bottom:1px solid #ccc;text-transform:uppercase;letter-spacing:.5px}
+    h3{font-size:14px;font-weight:600;margin:12px 0 2px}
+    p{margin:2px 0;line-height:1.6}
+    ul{margin:4px 0 4px 18px;padding:0}
+    li{line-height:1.6;margin-bottom:2px}
+    hr{border:none;border-top:1px solid #e0e0e0;margin:16px 0}
+    .spacer{height:6px}
+    .dl-btn{position:fixed;top:16px;right:16px;padding:9px 20px;background:#534ab7;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;box-shadow:0 2px 8px rgba(83,74,183,.3)}
+    @media print{.dl-btn{display:none}}
+  </style></head><body>
+    <button class="dl-btn" onclick="window.print()">Download PDF</button>
+    ${body}
+  </body></html>`;
+  const w = window.open('', '_blank');
+  if (w) { w.document.write(html); w.document.close(); }
+}
+
 // ── Make functions accessible from inline HTML ──
 if (typeof window !== 'undefined') {
   (window as any).deleteAchievement = deleteAchievement;
+  (window as any).requestDeleteAchievement = requestDeleteAchievement;
   (window as any).confirmVoiceSave = confirmVoiceSave;
   (window as any).setFilter = setFilter;
+  (window as any).previewResumePDF = previewResumePDF;
 }
 
 // ── Root component ──
@@ -327,11 +412,17 @@ export default function Home() {
   const [authLoading, setAuthLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState('');
   const [selectedCatState, setSelectedCatState] = useState('work');
+  const [deleteModal, setDeleteModal] = useState<{ visible: boolean; id: any }>({ visible: false, id: null });
 
   useEffect(() => {
     const t = localStorage.getItem('token');
     const u = localStorage.getItem('username');
     if (t) { setToken(t); setCurrentUser(u || ''); }
+  }, []);
+
+  useEffect(() => {
+    (window as any).__showDeleteModal = (id: any) => setDeleteModal({ visible: true, id });
+    return () => { delete (window as any).__showDeleteModal; };
   }, []);
 
   useEffect(() => {
@@ -446,6 +537,30 @@ export default function Home() {
   // ── Main app ──
   return (
     <>
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteModal.visible && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: '14px', padding: '28px 28px 24px', width: '340px', boxShadow: '0 8px 32px rgba(0,0,0,0.14)' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '8px', color: '#1a1917' }}>Delete achievement?</h3>
+            <p style={{ fontSize: '14px', color: '#888780', marginBottom: '24px', lineHeight: 1.5 }}>This action cannot be undone.</p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => setDeleteModal({ visible: false, id: null })}
+                style={{ flex: 1, padding: '10px', border: '1px solid #e5e4e0', borderRadius: '8px', background: '#fff', fontSize: '14px', cursor: 'pointer', color: '#5f5e5a' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => { await deleteAchievement(deleteModal.id); setDeleteModal({ visible: false, id: null }); }}
+                style={{ flex: 1, padding: '10px', border: 'none', borderRadius: '8px', background: '#a32d2d', fontSize: '14px', fontWeight: 600, cursor: 'pointer', color: '#fff' }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <nav>
         <span className="logo">re<span>sume</span>.ai</span>
         <div className="nav-tabs">
