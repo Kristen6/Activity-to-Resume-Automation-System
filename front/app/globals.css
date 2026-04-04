@@ -116,8 +116,7 @@ textarea{min-height:90px;line-height:1.6}
 .ac-meta{font-size:12px;color:#888780;margin-bottom:6px}
 .ac-desc{font-size:13px;color:#5f5e5a;line-height:1.6}
 .ac-tag{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;margin-right:6px}
-.ac-actions{opacity:0;transition:opacity .15s;display:flex;gap:6px}
-.achievement-card:hover .ac-actions{opacity:1}
+.ac-actions{opacity:1;display:flex;gap:6px}
 .icon-btn{background:none;border:1px solid #e8e6df;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:12px;color:#888780;transition:all .15s}
 .icon-btn.del:hover{border-color:#f09595;color:#a32d2d;background:#fcebeb}
 .empty{text-align:center;padding:60px 20px;color:#888780;font-size:14px}
